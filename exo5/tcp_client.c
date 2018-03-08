@@ -13,6 +13,11 @@
 #define PORT 10000
 
 
+int continuer = 1;
+void fermerC (int sign) {
+  continuer = 0;
+}
+
 int main(void) {
 
   int sock;
@@ -22,7 +27,7 @@ int main(void) {
   sock = socket(AF_INET, SOCK_STREAM, 0);
  
   /* Configuration de la connexion */
-  sin.sin_addr.s_addr = inet_addr("192.168.1.20"); /* On change ici l'adresse ip */
+  sin.sin_addr.s_addr = inet_addr("127.0.0.1"); /* On change ici l'adresse ip */
   sin.sin_family = AF_INET;
   sin.sin_port = htons(PORT);
  
@@ -32,15 +37,25 @@ int main(void) {
          htons(sin.sin_port));
 
 
-  
-  /* Récupération de la saisi de l'utilisateur */
-  char chaine[32];
-  printf("Tapez une phrase : \n");
-  fgets(chaine, sizeof chaine, stdin);
+  signal(SIGINT, fermerC);
 
-  /* Envoie du message au serveur */
-  send(sock, strcat(chaine, "\r\n"), 32, 0); 
-  
+  do {
+    /* Récupération de la saisi de l'utilisateur */
+    char chaine[32];
+    printf("Tapez une phrase : \n");
+    fgets(chaine, sizeof chaine, stdin);
+
+    /* On change le retour chariot */
+    char *pos;
+    pos = strchr(chaine, '\n');
+    *pos = '\0';
+
+    /* Envoie du message au serveur */
+    send(sock, chaine, 32, 0); 
+
+    // Remise du buffer à 0
+    memset(chaine, 0, sizeof(chaine));
+  } while (continuer);
 
   /* Fermeture de la socket client */
   close(sock);

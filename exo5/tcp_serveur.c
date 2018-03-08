@@ -48,21 +48,24 @@ int main(void) {
     pid = fork(); // Création du processus fils
     
     if (pid == 0) {
-      /* Reception du message du client à l'infinie */
       char bufferMrc[32] = "";
-      recv(csock, bufferMrc, 32, 0);
-      printf("Vous avez recu : %s \n", bufferMrc);
 
-      char autreBuffer[32] = "";
-      recv(csock, autreBuffer, 32, 0);
-      printf("Vous avez recu : %s \n", autreBuffer);
-      printf("Deuxieme message");
+      // Variable qui va compter le nombre de byte reçu par recv, si 0, la connection est fermé.
+      int nbByte;
+      do {
+        // recv est bloquant, il va attendre les messages du client 
+        nbByte = recv(csock, bufferMrc, 32, 0);
+        printf("Vous avez recu : %s \n", bufferMrc);
+
+        // Remise à 0 du buffer
+        memset(bufferMrc, 0, sizeof(bufferMrc));
+      } while (nbByte > 0);
      
       /* Lorque le client a envoyé son message, on ferme le processus fils */
       return EXIT_SUCCESS;
     } else {
       /* Le père attends que le fils se termine */
-      wait(NULL);
+        wait(NULL);
     }
   }
   
